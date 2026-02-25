@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# If the file exists, serve it (like css, images)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# If the folder exists, serve it
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Otherwise, send everything to index.php
+RewriteRule ^ index.php [L]
