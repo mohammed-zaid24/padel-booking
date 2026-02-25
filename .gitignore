@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node (if ever)
+node_modules/
+
+# Composer
+vendor/
+
+# Environment / secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# PHPUnit / cache
+.phpunit.result.cache
+
+# Docker volumes / local data (if you add these)
+dbdata/
+mysql-data/
+
+# Keep uploads out if you add later
+public/uploads/
