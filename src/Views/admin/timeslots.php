@@ -15,6 +15,7 @@
 
 <h2>Add timeslot</h2>
 <form method="post" action="/admin/timeslots/create">
+    <?= \App\Framework\Csrf::inputField() ?>
     <input type="hidden" name="court_id" value="<?php echo (int)$selectedCourtId; ?>">
 
     <div>
@@ -52,6 +53,7 @@
                     <td><?php echo htmlspecialchars($t->endTime); ?></td>
                     <td>
                         <form method="post" action="/admin/timeslots/delete" style="display:inline;">
+                            <?= \App\Framework\Csrf::inputField() ?>
                             <input type="hidden" name="id" value="<?php echo (int)$t->id; ?>">
                             <input type="hidden" name="court_id" value="<?php echo (int)$selectedCourtId; ?>">
                             <button type="submit" onclick="return confirm('Delete this timeslot?');">

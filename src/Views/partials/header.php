@@ -39,6 +39,7 @@
 
                         <li class="nav-item">
                             <form method="post" action="/logout">
+                                <?= \App\Framework\Csrf::inputField() ?>
                                 <button class="btn btn-sm btn-outline-light">Logout</button>
                             </form>
                         </li>

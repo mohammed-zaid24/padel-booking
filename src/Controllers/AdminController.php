@@ -56,6 +56,12 @@ class AdminController
     {
         $this->requireAdmin();
 
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
         $name = $_POST['name'] ?? '';
         $location = $_POST['location'] ?? '';
 
@@ -75,6 +81,12 @@ class AdminController
     public function deleteCourt()
     {
         $this->requireAdmin();
+
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/courts');
+            exit;
+        }
 
         $id = (int)($_POST['id'] ?? 0);
 
@@ -108,6 +120,12 @@ class AdminController
     {
         $this->requireAdmin();
 
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/timeslots');
+            exit;
+        }
+
         $courtId = (int)($_POST['court_id'] ?? 0);
         $startTime = $_POST['start_time'] ?? '';
         $endTime = $_POST['end_time'] ?? '';
@@ -127,6 +145,12 @@ class AdminController
     public function deleteTimeslot()
     {
         $this->requireAdmin();
+
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/timeslots');
+            exit;
+        }
 
         $id = (int)($_POST['id'] ?? 0);
         $courtId = (int)($_POST['court_id'] ?? 0);
@@ -152,6 +176,12 @@ class AdminController
     public function deleteBooking()
     {
         $this->requireAdmin();
+
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/bookings');
+            exit;
+        }
 
         $bookingId = (int)($_POST['booking_id'] ?? 0);
 

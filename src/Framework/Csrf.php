@@ -9,10 +9,7 @@ final class Csrf
 
     public static function token(): string
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
+        // assume session already started in entrypoint
         if (empty($_SESSION[self::KEY])) {
             $_SESSION[self::KEY] = bin2hex(random_bytes(32));
         }
@@ -28,10 +25,7 @@ final class Csrf
 
     public static function validate(?string $postedToken): bool
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
+        // assume session already started in entrypoint
         $sessionToken = $_SESSION[self::KEY] ?? '';
         if ($sessionToken === '' || $postedToken === null) {
             return false;

@@ -3,6 +3,7 @@
 <h1>Login</h1>
 
 <form method="post" action="/login">
+    <?= \App\Framework\Csrf::inputField() ?>
     <div>
         <label>Email</label><br>
         <input type="email" name="email" required>

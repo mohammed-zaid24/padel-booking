@@ -15,7 +15,14 @@ class BookingController
 
     public function create()
     {
-        // 1) Must be logged in
+        // 1) Validate CSRF
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /courts');
+            exit;
+        }
+
+        // 2) Must be logged in
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
             exit;
@@ -59,6 +66,12 @@ class BookingController
 
   public function cancel()
  {
+    if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+        $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+        header('Location: /my-bookings');
+        exit;
+    }
+
     if (!isset($_SESSION['user_id'])) {
         header('Location: /login');
         exit;

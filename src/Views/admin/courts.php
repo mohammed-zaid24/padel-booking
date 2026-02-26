@@ -4,6 +4,7 @@
 
 <h2>Add new court</h2>
 <form method="post" action="/admin/courts/create">
+    <?= \App\Framework\Csrf::inputField() ?>
     <div class="mb-2">
         <label class="form-label">Name</label>
         <input type="text" name="name" required class="form-control">
@@ -36,6 +37,7 @@
                 <td><?php echo htmlspecialchars($c->location); ?></td>
                 <td>
                     <form method="post" action="/admin/courts/delete" style="display:inline;">
+                        <?= \App\Framework\Csrf::inputField() ?>
                         <input type="hidden" name="id" value="<?php echo (int)$c->id; ?>">
                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this court?');">
                             Delete

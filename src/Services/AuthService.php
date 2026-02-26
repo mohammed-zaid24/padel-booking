@@ -45,6 +45,9 @@ class AuthService implements IAuthService
         return false;
     }
 
+    // prevent session fixation
+    session_regenerate_id(true);
+
     // Save login info in session
     $_SESSION['user_id'] = $user->id;
     $_SESSION['user_name'] = $user->name;

@@ -24,8 +24,11 @@
     </div>
 </div>
 
+<input type="hidden" id="csrf-token" value="<?= \App\Framework\Csrf::token() ?>">
+
 <script>
 const courtId = <?php echo (int)$court->id; ?>;
+const csrfToken = document.getElementById('csrf-token').value;
 const datePicker = document.getElementById('datePicker');
 const box = document.getElementById('timeslotsBox');
 
@@ -65,6 +68,7 @@ datePicker.addEventListener('change', async () => {
                     <span>${t.start_time} - ${t.end_time}</span>
 
                     <form method="post" action="/book" class="m-0">
+                        <input type="hidden" name="_csrf" value="${csrfToken}">
                         <input type="hidden" name="court_id" value="${courtId}">
                         <input type="hidden" name="timeslot_id" value="${t.id}">
                         <input type="hidden" name="date" value="${date}">

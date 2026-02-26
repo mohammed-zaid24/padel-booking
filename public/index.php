@@ -1,5 +1,16 @@
 <?php
 
+// configure session cookie parameters before starting session
+$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => $secure,
+    'httponly' => true,
+    'samesite' => 'Strict',
+]);
+
 session_start();
 
 ini_set('display_errors', 1);

@@ -3,6 +3,7 @@
 <h1>Register</h1>
 
 <form method="post" action="/register">
+    <?= \App\Framework\Csrf::inputField() ?>
     <div>
         <label>Name</label><br>
         <input type="text" name="name" required>

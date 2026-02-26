@@ -28,6 +28,7 @@
                     <td><?php echo htmlspecialchars($b['court_location']); ?></td>
                     <td>
                         <form method="post" action="/cancel-booking" style="display:inline;">
+                            <?= \App\Framework\Csrf::inputField() ?>
                             <input type="hidden" name="booking_id" value="<?php echo (int)$b['booking_id']; ?>">
                             <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
                         </form>

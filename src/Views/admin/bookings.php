@@ -31,6 +31,7 @@
                     <td><?php echo htmlspecialchars($b['user_email']); ?></td>
                     <td>
                         <form method="post" action="/admin/bookings/delete" style="display:inline;">
+                            <?= \App\Framework\Csrf::inputField() ?>
                             <input type="hidden" name="booking_id" value="<?php echo (int)$b['booking_id']; ?>">
                             <button type="submit" onclick="return confirm('Delete this booking?');">
                                 Delete
