@@ -6,7 +6,11 @@ class HomeController
 {
     public function index(): void
     {
-        require __DIR__ . '/../Views/home/index.php';
+        if (isset($_SESSION['user_id']) && ($_SESSION['user_role'] ?? '') === 'admin') {
+            header('Location: /admin');
+            exit;
+        }
 
+        require __DIR__ . '/../Views/home/index.php';
     }
 }

@@ -78,6 +78,61 @@ class AdminController
         exit;
     }
 
+    public function editCourt()
+    {
+        $this->requireAdmin();
+
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['flash_error'] = 'Invalid court.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
+        $court = $this->courtService->getById($id);
+        if ($court === null) {
+            $_SESSION['flash_error'] = 'Court not found.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
+        require __DIR__ . '/../Views/admin/courts_edit.php';
+    }
+
+    public function updateCourt()
+    {
+        $this->requireAdmin();
+
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        $name = trim($_POST['name'] ?? '');
+        $location = trim($_POST['location'] ?? '');
+
+        if ($id <= 0 || $name === '' || $location === '') {
+            $_SESSION['flash_error'] = 'Invalid data.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
+        $court = $this->courtService->getById($id);
+        if ($court === null) {
+            $_SESSION['flash_error'] = 'Court not found.';
+            header('Location: /admin/courts');
+            exit;
+        }
+
+        $this->courtService->update($id, $name, $location);
+
+        $_SESSION['flash_success'] = 'Court updated.';
+        header('Location: /admin/courts');
+        exit;
+    }
+
     public function deleteCourt()
     {
         $this->requireAdmin();

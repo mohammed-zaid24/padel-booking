@@ -25,7 +25,25 @@ class BookingService implements IBookingService
     
     public function getByUserId(int $userId): array
     {
-    return $this->bookingRepository->getByUserId($userId);
+        return $this->bookingRepository->getByUserId($userId);
+    }
+
+    public function getBookingById(int $bookingId, int $userId): ?array
+    {
+        return $this->bookingRepository->getByIdAndUserId($bookingId, $userId);
+    }
+
+    public function updateBooking(int $bookingId, int $userId, string $date, int $timeslotId): bool
+    {
+        $booking = $this->bookingRepository->getByIdAndUserId($bookingId, $userId);
+        if ($booking === null) {
+            return false;
+        }
+        $courtId = (int) $booking['court_id'];
+        if ($this->bookingRepository->isSlotTaken($courtId, $date, $timeslotId, $bookingId)) {
+            return false;
+        }
+        return $this->bookingRepository->updateBooking($bookingId, $userId, $date, $timeslotId);
     }
 
     public function cancelBooking(int $bookingId, int $userId): bool

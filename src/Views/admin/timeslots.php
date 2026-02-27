@@ -1,6 +1,7 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
 <div class="container py-4">
+    <a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
     <h1 class="mb-4">Manage Timeslots</h1>
 
     <form method="get" action="/admin/timeslots" class="mb-3">

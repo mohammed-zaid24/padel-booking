@@ -28,6 +28,11 @@ class CourtService implements ICourtService
     $this->courtRepository->create($name, $location);
 }
 
+    public function update(int $id, string $name, string $location): void
+    {
+        $this->courtRepository->update($id, $name, $location);
+    }
+
    public function delete(int $id): void
    {
     $this->courtRepository->delete($id);

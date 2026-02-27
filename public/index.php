@@ -69,6 +69,14 @@ if ($path === '/' || $path === '') {
     $controller = new \App\Controllers\BookingController();
     $controller->myBookings();
 
+    } elseif ($path === '/edit-booking' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new \App\Controllers\BookingController();
+    $controller->editForm();
+
+    } elseif ($path === '/edit-booking' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new \App\Controllers\BookingController();
+    $controller->update();
+
     } elseif ($path === '/cancel-booking' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new \App\Controllers\BookingController();
     $controller->cancel();
@@ -88,6 +96,14 @@ if ($path === '/' || $path === '') {
     } elseif ($path === '/admin/courts/create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new \App\Controllers\AdminController();
     $controller->createCourt();
+
+    } elseif ($path === '/admin/courts/edit' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new \App\Controllers\AdminController();
+    $controller->editCourt();
+
+    } elseif ($path === '/admin/courts/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new \App\Controllers\AdminController();
+    $controller->updateCourt();
 
     } elseif ($path === '/admin/courts/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new \App\Controllers\AdminController();

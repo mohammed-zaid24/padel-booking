@@ -60,6 +60,19 @@ class CourtRepository extends Repository implements ICourtRepository
     ]);
 }
 
+    public function update(int $id, string $name, string $location): void
+    {
+        $pdo = $this->getConnection();
+
+        $sql = "UPDATE courts SET name = :name, location = :location WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $id,
+            'name' => $name,
+            'location' => $location
+        ]);
+    }
+
   public function delete(int $id): void
    {
     $pdo = $this->getConnection();

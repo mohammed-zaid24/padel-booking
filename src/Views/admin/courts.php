@@ -1,5 +1,7 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
+<a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+
 <h1>Manage Courts</h1>
 
 <h2>Add new court</h2>
@@ -36,6 +38,7 @@
                 <td><?php echo htmlspecialchars($c->name); ?></td>
                 <td><?php echo htmlspecialchars($c->location); ?></td>
                 <td>
+                    <a href="/admin/courts/edit?id=<?php echo (int)$c->id; ?>" class="btn btn-sm btn-outline-primary me-1">Edit</a>
                     <form method="post" action="/admin/courts/delete" style="display:inline;">
                         <?= \App\Framework\Csrf::inputField() ?>
                         <input type="hidden" name="id" value="<?php echo (int)$c->id; ?>">
