@@ -65,7 +65,12 @@ class AuthController
     $success = $this->authService->login($email, $password);
 
     if ($success) {
-        header('Location: /');
+        // Redirect based on role
+        if (($_SESSION['user_role'] ?? '') === 'admin') {
+            header('Location: /admin');
+        } else {
+            header('Location: /courts');
+        }
         exit;
     }
 
