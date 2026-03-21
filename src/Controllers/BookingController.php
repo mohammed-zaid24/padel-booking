@@ -42,59 +42,69 @@ class BookingController
             return;
         }
 
-        // 2) Insert booking
-        $this->bookingService->createBooking($userId, $courtId, $date, $timeslotId);
-
-        $_SESSION['flash_success'] = 'Booking created successfully.';
-        $_SESSION['show_my_bookings_button'] = true;
-
-        header("Location: /courts/$courtId?date=" . urlencode($date));
-        exit;
+        try {
+            $this->bookingService->createBooking($userId, $courtId, $date, $timeslotId);
+            $_SESSION['flash_success'] = 'Booking created successfully.';
+            $_SESSION['show_my_bookings_button'] = true;
+            header("Location: /courts/$courtId?date=" . urlencode($date));
+            exit;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to create booking: ' . $e->getMessage();
+            header("Location: /courts/$courtId?date=" . urlencode($date));
+            exit;
+        }
     }
 
     public function myBookings()
-  {
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $userId = (int)$_SESSION['user_id'];
+
+        try {
+            $bookings = $this->bookingService->getByUserId($userId);
+            require __DIR__ . '/../Views/bookings/my.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading your bookings: ' . $e->getMessage();
+            header('Location: /');
+            exit;
+        }
     }
 
-    $userId = (int)$_SESSION['user_id'];
+    public function cancel()
+    {
+        if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
+            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            header('Location: /my-bookings');
+            exit;
+        }
 
-    $bookings = $this->bookingService->getByUserId($userId);
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
 
-    require __DIR__ . '/../Views/bookings/my.php';
-  }
+        $userId = (int)$_SESSION['user_id'];
+        $bookingId = (int)($_POST['booking_id'] ?? 0);
 
-  public function cancel()
- {
-    if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-        $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+        if ($bookingId <= 0) {
+            echo "Invalid booking";
+            return;
+        }
+
+        try {
+            $this->bookingService->cancelBooking($bookingId, $userId);
+            $_SESSION['flash_success'] = 'Booking canceled.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to cancel booking: ' . $e->getMessage();
+        }
+
         header('Location: /my-bookings');
         exit;
     }
-
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
-    }
-
-    $userId = (int)$_SESSION['user_id'];
-    $bookingId = (int)($_POST['booking_id'] ?? 0);
-
-    if ($bookingId <= 0) {
-        echo "Invalid booking";
-        return;
-    }
-
-    $deleted = $this->bookingService->cancelBooking($bookingId, $userId);
-
-    // flash success
-    $_SESSION['flash_success'] = 'Booking canceled.';
-
-    header('Location: /my-bookings');
-    exit;
-  }
 
     public function editForm()
     {
@@ -112,16 +122,21 @@ class BookingController
             exit;
         }
 
-        $booking = $this->bookingService->getBookingById($bookingId, $userId);
-        if ($booking === null) {
-            $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+        try {
+            $booking = $this->bookingService->getBookingById($bookingId, $userId);
+            if ($booking === null) {
+                $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+                header('Location: /my-bookings');
+                exit;
+            }
+
+            $timeslots = $this->timeslotService->getByCourtId((int) $booking['court_id']);
+            require __DIR__ . '/../Views/bookings/edit.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading the booking: ' . $e->getMessage();
             header('Location: /my-bookings');
             exit;
         }
-
-        $timeslots = $this->timeslotService->getByCourtId((int) $booking['court_id']);
-
-        require __DIR__ . '/../Views/bookings/edit.php';
     }
 
     public function update()
@@ -148,17 +163,21 @@ class BookingController
             exit;
         }
 
-        $updated = $this->bookingService->updateBooking($bookingId, $userId, $date, $timeslotId);
+        try {
+            $updated = $this->bookingService->updateBooking($bookingId, $userId, $date, $timeslotId);
 
-        if ($updated) {
-            $_SESSION['flash_success'] = 'Booking updated successfully.';
-        } else {
-            $booking = $this->bookingService->getBookingById($bookingId, $userId);
-            if ($booking === null) {
-                $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+            if ($updated) {
+                $_SESSION['flash_success'] = 'Booking updated successfully.';
             } else {
-                $_SESSION['flash_error'] = 'Could not update: that date and time are already booked.';
+                $booking = $this->bookingService->getBookingById($bookingId, $userId);
+                if ($booking === null) {
+                    $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+                } else {
+                    $_SESSION['flash_error'] = 'Could not update: that date and time are already booked.';
+                }
             }
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred updating the booking: ' . $e->getMessage();
         }
 
         header('Location: /my-bookings');

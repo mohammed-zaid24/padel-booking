@@ -40,16 +40,27 @@ class AdminController
     {
         $this->requireAdmin();
 
-        require __DIR__ . '/../Views/admin/index.php';
+        try {
+            require __DIR__ . '/../Views/admin/index.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading the admin page.';
+            header('Location: /');
+            exit;
+        }
     }
 
     public function courts()
     {
         $this->requireAdmin();
 
-        $courts = $this->courtService->getAll();
-
-        require __DIR__ . '/../Views/admin/courts.php';
+        try {
+            $courts = $this->courtService->getAll();
+            require __DIR__ . '/../Views/admin/courts.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading courts: ' . $e->getMessage();
+            header('Location: /admin');
+            exit;
+        }
     }
 
     public function createCourt()
@@ -66,13 +77,18 @@ class AdminController
         $location = $_POST['location'] ?? '';
 
         if (trim($name) === '' || trim($location) === '') {
+            $_SESSION['flash_error'] = 'Please fill in both name and location.';
             header('Location: /admin/courts');
             exit;
         }
 
-        $this->courtService->create($name, $location);
-
-        $_SESSION['flash_success'] = 'Court added.';
+        try {
+            $this->courtService->create($name, $location);
+            $_SESSION['flash_success'] = 'Court added.';
+            $_SESSION['show_court_added_success'] = true;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to add court: ' . $e->getMessage();
+        }
 
         header('Location: /admin/courts');
         exit;
@@ -89,14 +105,19 @@ class AdminController
             exit;
         }
 
-        $court = $this->courtService->getById($id);
-        if ($court === null) {
-            $_SESSION['flash_error'] = 'Court not found.';
+        try {
+            $court = $this->courtService->getById($id);
+            if ($court === null) {
+                $_SESSION['flash_error'] = 'Court not found.';
+                header('Location: /admin/courts');
+                exit;
+            }
+            require __DIR__ . '/../Views/admin/courts_edit.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred: ' . $e->getMessage();
             header('Location: /admin/courts');
             exit;
         }
-
-        require __DIR__ . '/../Views/admin/courts_edit.php';
     }
 
     public function updateCourt()
@@ -119,16 +140,20 @@ class AdminController
             exit;
         }
 
-        $court = $this->courtService->getById($id);
-        if ($court === null) {
-            $_SESSION['flash_error'] = 'Court not found.';
-            header('Location: /admin/courts');
-            exit;
+        try {
+            $court = $this->courtService->getById($id);
+            if ($court === null) {
+                $_SESSION['flash_error'] = 'Court not found.';
+                header('Location: /admin/courts');
+                exit;
+            }
+
+            $this->courtService->update($id, $name, $location);
+            $_SESSION['flash_success'] = 'Court updated.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to update court: ' . $e->getMessage();
         }
 
-        $this->courtService->update($id, $name, $location);
-
-        $_SESSION['flash_success'] = 'Court updated.';
         header('Location: /admin/courts');
         exit;
     }
@@ -145,11 +170,15 @@ class AdminController
 
         $id = (int)($_POST['id'] ?? 0);
 
-        if ($id > 0) {
-            $this->courtService->delete($id);
+        try {
+            if ($id > 0) {
+                $this->courtService->delete($id);
+            }
+            $_SESSION['flash_success'] = 'Court deleted.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to delete court: ' . $e->getMessage();
         }
 
-        $_SESSION['flash_success'] = 'Court deleted.';
         header('Location: /admin/courts');
         exit;
     }
@@ -158,17 +187,23 @@ class AdminController
     {
         $this->requireAdmin();
 
-        $courts = $this->courtService->getAll();
+        try {
+            $courts = $this->courtService->getAll();
 
-        // For simplicity: show timeslots for selected court (or first court)
-        $selectedCourtId = (int)($_GET['court_id'] ?? ($courts[0]->id ?? 0));
+            // Admin must explicitly choose a court.
+            $selectedCourtId = (int)($_GET['court_id'] ?? 0);
 
-        $timeslots = [];
-        if ($selectedCourtId > 0) {
-            $timeslots = $this->timeslotService->getByCourtId($selectedCourtId);
+            $timeslots = [];
+            if ($selectedCourtId > 0) {
+                $timeslots = $this->timeslotService->getByCourtId($selectedCourtId);
+            }
+
+            require __DIR__ . '/../Views/admin/timeslots.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading timeslots: ' . $e->getMessage();
+            header('Location: /admin');
+            exit;
         }
-
-        require __DIR__ . '/../Views/admin/timeslots.php';
     }
 
     public function createTimeslot()
@@ -182,17 +217,30 @@ class AdminController
         }
 
         $courtId = (int)($_POST['court_id'] ?? 0);
-        $startTime = $_POST['start_time'] ?? '';
-        $endTime = $_POST['end_time'] ?? '';
+        $startTime = trim($_POST['start_time'] ?? '');
+        $endTime = trim($_POST['end_time'] ?? '');
 
         if ($courtId <= 0 || $startTime === '' || $endTime === '') {
+            $_SESSION['flash_error'] = 'Please choose a court and start/end time.';
             header('Location: /admin/timeslots');
             exit;
         }
 
-        $this->timeslotService->create($courtId, $startTime, $endTime);
+        if (strtotime($endTime) <= strtotime($startTime)) {
+            $_SESSION['flash_error'] = 'End time must be later than start time.';
+            header('Location: /admin/timeslots?court_id=' . $courtId);
+            exit;
+        }
 
-        $_SESSION['flash_success'] = 'Timeslot added.';
+        try {
+            $this->timeslotService->create($courtId, $startTime, $endTime);
+            $_SESSION['flash_success'] = 'Timeslot added.';
+            $_SESSION['show_timeslot_added_success'] = true;
+            $_SESSION['last_court_id'] = $courtId;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to add timeslot: ' . $e->getMessage();
+        }
+
         header('Location: /admin/timeslots?court_id=' . $courtId);
         exit;
     }
@@ -210,11 +258,15 @@ class AdminController
         $id = (int)($_POST['id'] ?? 0);
         $courtId = (int)($_POST['court_id'] ?? 0);
 
-        if ($id > 0) {
-            $this->timeslotService->delete($id);
+        try {
+            if ($id > 0) {
+                $this->timeslotService->delete($id);
+            }
+            $_SESSION['flash_success'] = 'Timeslot deleted.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to delete timeslot: ' . $e->getMessage();
         }
 
-        $_SESSION['flash_success'] = 'Timeslot deleted.';
         header('Location: /admin/timeslots?court_id=' . $courtId);
         exit;
     }
@@ -223,9 +275,14 @@ class AdminController
     {
         $this->requireAdmin();
 
-        $bookings = $this->bookingService->getAll();
-
-        require __DIR__ . '/../Views/admin/bookings.php';
+        try {
+            $bookings = $this->bookingService->getAll();
+            require __DIR__ . '/../Views/admin/bookings.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading bookings: ' . $e->getMessage();
+            header('Location: /admin');
+            exit;
+        }
     }
 
     public function deleteBooking()
@@ -240,11 +297,15 @@ class AdminController
 
         $bookingId = (int)($_POST['booking_id'] ?? 0);
 
-        if ($bookingId > 0) {
-            $this->bookingService->deleteById($bookingId);
+        try {
+            if ($bookingId > 0) {
+                $this->bookingService->deleteById($bookingId);
+            }
+            $_SESSION['flash_success'] = 'Booking deleted.';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Failed to delete booking: ' . $e->getMessage();
         }
 
-        $_SESSION['flash_success'] = 'Booking deleted.';
         header('Location: /admin/bookings');
         exit;
     }

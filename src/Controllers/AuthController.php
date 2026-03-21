@@ -15,12 +15,24 @@ class AuthController
 
     public function registerForm()
     {
-        require __DIR__ . '/../Views/auth/register.php';
+        try {
+            require __DIR__ . '/../Views/auth/register.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading the registration page.';
+            header('Location: /');
+            exit;
+        }
     }
 
     public function loginForm()
     {
-        require __DIR__ . '/../Views/auth/login.php';
+        try {
+            require __DIR__ . '/../Views/auth/login.php';
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'An error occurred loading the login page.';
+            header('Location: /');
+            exit;
+        }
     }
 
     public function register()
@@ -36,16 +48,21 @@ class AuthController
         $password = $_POST['password'] ?? '';
 
         if (trim($name) === '' || trim($email) === '' || trim($password) === '') {
-        echo "Please fill all fields.";
-         return;
+            echo "Please fill all fields.";
+            return;
+        }
+
+        try {
+            $this->authService->register($name, $email, $password);
+            header('Location: /login');
+            exit;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Registration failed: ' . $e->getMessage();
+            header('Location: /register');
+            exit;
+        }
     }
 
-        $this->authService->register($name, $email, $password);
-
-        header('Location: /login');
-        exit;
-    
-    }
     public function login()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
@@ -57,25 +74,33 @@ class AuthController
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
 
-    if (trim($email) === '' || trim($password) === '') {
-        echo "Please fill all fields.";
-        return;
-    }
-
-    $success = $this->authService->login($email, $password);
-
-    if ($success) {
-        // Redirect based on role
-        if (($_SESSION['user_role'] ?? '') === 'admin') {
-            header('Location: /admin');
-        } else {
-            header('Location: /courts');
+        if (trim($email) === '' || trim($password) === '') {
+            $_SESSION['flash_error'] = 'Please fill in email and password.';
+            header('Location: /login');
+            exit;
         }
-        exit;
-    }
 
-    echo "Login failed (wrong email or password).";
-  }
+        try {
+            $success = $this->authService->login($email, $password);
+
+            if ($success) {
+                if (($_SESSION['user_role'] ?? '') === 'admin') {
+                    header('Location: /admin');
+                } else {
+                    header('Location: /courts');
+                }
+                exit;
+            }
+
+            $_SESSION['flash_error'] = 'Login failed (wrong email or password).';
+            header('Location: /login');
+            exit;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Login failed: ' . $e->getMessage();
+            header('Location: /login');
+            exit;
+        }
+    }
 
     public function logout()
     {
@@ -85,25 +110,31 @@ class AuthController
             exit;
         }
 
-        // Unset all session variables
-        $_SESSION = [];
+        try {
+            // Unset all session variables
+            $_SESSION = [];
 
-        // Delete session cookie
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params['path'] ?? '/',
-                $params['domain'] ?? '',
-                $params['secure'] ?? false,
-                $params['httponly'] ?? true
-            );
+            // Delete session cookie
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params['path'] ?? '/',
+                    $params['domain'] ?? '',
+                    $params['secure'] ?? false,
+                    $params['httponly'] ?? true
+                );
+            }
+
+            // Destroy the session
+            session_destroy();
+
+            header('Location: /');
+            exit;
+        } catch (\Exception $e) {
+            $_SESSION['flash_error'] = 'Logout failed. Please try again.';
+            header('Location: /');
+            exit;
         }
-
-        // Destroy the session
-        session_destroy();
-
-        header('Location: /');
-        exit;
     }
 
 }
