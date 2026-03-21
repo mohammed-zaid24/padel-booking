@@ -43,7 +43,7 @@ class AdminController
         try {
             require __DIR__ . '/../Views/admin/index.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading the admin page.';
+            $_SESSION['error_message'] = 'An error occurred loading the admin page.';
             header('Location: /');
             exit;
         }
@@ -57,7 +57,7 @@ class AdminController
             $courts = $this->courtService->getAll();
             require __DIR__ . '/../Views/admin/courts.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading courts: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading courts: ' . $e->getMessage();
             header('Location: /admin');
             exit;
         }
@@ -68,7 +68,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/courts');
             exit;
         }
@@ -77,7 +77,7 @@ class AdminController
         $location = $_POST['location'] ?? '';
 
         if (trim($name) === '' || trim($location) === '') {
-            $_SESSION['flash_error'] = 'Please fill in both name and location.';
+            $_SESSION['error_message'] = 'Please fill in both name and location.';
             header('Location: /admin/courts');
             exit;
         }
@@ -87,7 +87,7 @@ class AdminController
             $_SESSION['flash_success'] = 'Court added.';
             $_SESSION['show_court_added_success'] = true;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to add court: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to add court: ' . $e->getMessage();
         }
 
         header('Location: /admin/courts');
@@ -100,7 +100,7 @@ class AdminController
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id <= 0) {
-            $_SESSION['flash_error'] = 'Invalid court.';
+            $_SESSION['error_message'] = 'Invalid court.';
             header('Location: /admin/courts');
             exit;
         }
@@ -108,13 +108,13 @@ class AdminController
         try {
             $court = $this->courtService->getById($id);
             if ($court === null) {
-                $_SESSION['flash_error'] = 'Court not found.';
+                $_SESSION['error_message'] = 'Court not found.';
                 header('Location: /admin/courts');
                 exit;
             }
             require __DIR__ . '/../Views/admin/courts_edit.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred: ' . $e->getMessage();
             header('Location: /admin/courts');
             exit;
         }
@@ -125,7 +125,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/courts');
             exit;
         }
@@ -135,7 +135,7 @@ class AdminController
         $location = trim($_POST['location'] ?? '');
 
         if ($id <= 0 || $name === '' || $location === '') {
-            $_SESSION['flash_error'] = 'Invalid data.';
+            $_SESSION['error_message'] = 'Invalid data.';
             header('Location: /admin/courts');
             exit;
         }
@@ -143,7 +143,7 @@ class AdminController
         try {
             $court = $this->courtService->getById($id);
             if ($court === null) {
-                $_SESSION['flash_error'] = 'Court not found.';
+                $_SESSION['error_message'] = 'Court not found.';
                 header('Location: /admin/courts');
                 exit;
             }
@@ -151,7 +151,7 @@ class AdminController
             $this->courtService->update($id, $name, $location);
             $_SESSION['flash_success'] = 'Court updated.';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to update court: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to update court: ' . $e->getMessage();
         }
 
         header('Location: /admin/courts');
@@ -163,7 +163,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/courts');
             exit;
         }
@@ -176,7 +176,7 @@ class AdminController
             }
             $_SESSION['flash_success'] = 'Court deleted.';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to delete court: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to delete court: ' . $e->getMessage();
         }
 
         header('Location: /admin/courts');
@@ -200,7 +200,7 @@ class AdminController
 
             require __DIR__ . '/../Views/admin/timeslots.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading timeslots: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading timeslots: ' . $e->getMessage();
             header('Location: /admin');
             exit;
         }
@@ -211,7 +211,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/timeslots');
             exit;
         }
@@ -221,13 +221,13 @@ class AdminController
         $endTime = trim($_POST['end_time'] ?? '');
 
         if ($courtId <= 0 || $startTime === '' || $endTime === '') {
-            $_SESSION['flash_error'] = 'Please choose a court and start/end time.';
+            $_SESSION['error_message'] = 'Please choose a court and start/end time.';
             header('Location: /admin/timeslots');
             exit;
         }
 
         if (strtotime($endTime) <= strtotime($startTime)) {
-            $_SESSION['flash_error'] = 'End time must be later than start time.';
+            $_SESSION['error_message'] = 'End time must be later than start time.';
             header('Location: /admin/timeslots?court_id=' . $courtId);
             exit;
         }
@@ -238,7 +238,7 @@ class AdminController
             $_SESSION['show_timeslot_added_success'] = true;
             $_SESSION['last_court_id'] = $courtId;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to add timeslot: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to add timeslot: ' . $e->getMessage();
         }
 
         header('Location: /admin/timeslots?court_id=' . $courtId);
@@ -250,7 +250,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/timeslots');
             exit;
         }
@@ -264,7 +264,7 @@ class AdminController
             }
             $_SESSION['flash_success'] = 'Timeslot deleted.';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to delete timeslot: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to delete timeslot: ' . $e->getMessage();
         }
 
         header('Location: /admin/timeslots?court_id=' . $courtId);
@@ -279,7 +279,7 @@ class AdminController
             $bookings = $this->bookingService->getAll();
             require __DIR__ . '/../Views/admin/bookings.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading bookings: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading bookings: ' . $e->getMessage();
             header('Location: /admin');
             exit;
         }
@@ -290,7 +290,7 @@ class AdminController
         $this->requireAdmin();
 
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /admin/bookings');
             exit;
         }
@@ -303,7 +303,7 @@ class AdminController
             }
             $_SESSION['flash_success'] = 'Booking deleted.';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to delete booking: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to delete booking: ' . $e->getMessage();
         }
 
         header('Location: /admin/bookings');

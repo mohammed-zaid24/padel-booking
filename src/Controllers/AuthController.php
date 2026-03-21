@@ -18,7 +18,7 @@ class AuthController
         try {
             require __DIR__ . '/../Views/auth/register.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading the registration page.';
+            $_SESSION['error_message'] = 'An error occurred loading the registration page.';
             header('Location: /');
             exit;
         }
@@ -29,7 +29,7 @@ class AuthController
         try {
             require __DIR__ . '/../Views/auth/login.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading the login page.';
+            $_SESSION['error_message'] = 'An error occurred loading the login page.';
             header('Location: /');
             exit;
         }
@@ -38,7 +38,7 @@ class AuthController
     public function register()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /register');
             exit;
         }
@@ -57,7 +57,7 @@ class AuthController
             header('Location: /login');
             exit;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Registration failed: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Registration failed: ' . $e->getMessage();
             header('Location: /register');
             exit;
         }
@@ -66,7 +66,7 @@ class AuthController
     public function login()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /login');
             exit;
         }
@@ -75,7 +75,7 @@ class AuthController
         $password = $_POST['password'] ?? '';
 
         if (trim($email) === '' || trim($password) === '') {
-            $_SESSION['flash_error'] = 'Please fill in email and password.';
+            $_SESSION['error_message'] = 'Please fill in email and password.';
             header('Location: /login');
             exit;
         }
@@ -87,16 +87,16 @@ class AuthController
                 if (($_SESSION['user_role'] ?? '') === 'admin') {
                     header('Location: /admin');
                 } else {
-                    header('Location: /courts');
+                    header('Location: /');
                 }
                 exit;
             }
 
-            $_SESSION['flash_error'] = 'Login failed (wrong email or password).';
+            $_SESSION['error_message'] = 'Login failed (wrong email or password).';
             header('Location: /login');
             exit;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Login failed: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Login failed: ' . $e->getMessage();
             header('Location: /login');
             exit;
         }
@@ -105,7 +105,7 @@ class AuthController
     public function logout()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /');
             exit;
         }
@@ -131,7 +131,7 @@ class AuthController
             header('Location: /');
             exit;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Logout failed. Please try again.';
+            $_SESSION['error_message'] = 'Logout failed. Please try again.';
             header('Location: /');
             exit;
         }

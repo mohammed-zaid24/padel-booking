@@ -92,12 +92,12 @@
             <?php unset($_SESSION['flash_success']); ?>
         <?php endif; ?>
 
-        <?php if (isset($_SESSION['flash_error'])): ?>
+        <?php if (isset($_SESSION['error_message'])): ?>
             <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3 mb-0" role="alert">
-                <?php echo htmlspecialchars($_SESSION['flash_error']); ?>
+                <?php echo htmlspecialchars($_SESSION['error_message']); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <?php unset($_SESSION['flash_error']); ?>
+            <?php unset($_SESSION['error_message']); ?>
         <?php endif; ?>
     </header>
 </div>

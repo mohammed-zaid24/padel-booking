@@ -27,7 +27,7 @@ class CourtController
             $courts = $this->courtService->getAll();
             require __DIR__ . '/../Views/courts/index.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading courts: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading courts: ' . $e->getMessage();
             header('Location: /');
             exit;
         }
@@ -54,7 +54,7 @@ class CourtController
 
             require __DIR__ . '/../Views/courts/get.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading the court: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading the court: ' . $e->getMessage();
             header('Location: /courts');
             exit;
         }

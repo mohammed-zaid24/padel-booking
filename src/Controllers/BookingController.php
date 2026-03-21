@@ -20,7 +20,7 @@ class BookingController
     {
         // 1) Validate CSRF
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /courts');
             exit;
         }
@@ -49,7 +49,7 @@ class BookingController
             header("Location: /courts/$courtId?date=" . urlencode($date));
             exit;
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to create booking: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to create booking: ' . $e->getMessage();
             header("Location: /courts/$courtId?date=" . urlencode($date));
             exit;
         }
@@ -68,7 +68,7 @@ class BookingController
             $bookings = $this->bookingService->getByUserId($userId);
             require __DIR__ . '/../Views/bookings/my.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading your bookings: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading your bookings: ' . $e->getMessage();
             header('Location: /');
             exit;
         }
@@ -77,7 +77,7 @@ class BookingController
     public function cancel()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /my-bookings');
             exit;
         }
@@ -99,7 +99,7 @@ class BookingController
             $this->bookingService->cancelBooking($bookingId, $userId);
             $_SESSION['flash_success'] = 'Booking canceled.';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'Failed to cancel booking: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'Failed to cancel booking: ' . $e->getMessage();
         }
 
         header('Location: /my-bookings');
@@ -117,7 +117,7 @@ class BookingController
         $bookingId = (int) ($_GET['id'] ?? 0);
 
         if ($bookingId <= 0) {
-            $_SESSION['flash_error'] = 'Invalid booking.';
+            $_SESSION['error_message'] = 'Invalid booking.';
             header('Location: /my-bookings');
             exit;
         }
@@ -125,7 +125,7 @@ class BookingController
         try {
             $booking = $this->bookingService->getBookingById($bookingId, $userId);
             if ($booking === null) {
-                $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+                $_SESSION['error_message'] = 'Booking not found or you do not have permission to edit it.';
                 header('Location: /my-bookings');
                 exit;
             }
@@ -133,7 +133,7 @@ class BookingController
             $timeslots = $this->timeslotService->getByCourtId((int) $booking['court_id']);
             require __DIR__ . '/../Views/bookings/edit.php';
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred loading the booking: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred loading the booking: ' . $e->getMessage();
             header('Location: /my-bookings');
             exit;
         }
@@ -142,7 +142,7 @@ class BookingController
     public function update()
     {
         if (!\App\Framework\Csrf::validate($_POST['_csrf'] ?? null)) {
-            $_SESSION['flash_error'] = 'Invalid request (CSRF). Please try again.';
+            $_SESSION['error_message'] = 'Invalid request (CSRF). Please try again.';
             header('Location: /my-bookings');
             exit;
         }
@@ -158,7 +158,7 @@ class BookingController
         $timeslotId = (int) ($_POST['timeslot_id'] ?? 0);
 
         if ($bookingId <= 0 || $date === '' || $timeslotId <= 0) {
-            $_SESSION['flash_error'] = 'Invalid data.';
+            $_SESSION['error_message'] = 'Invalid data.';
             header('Location: /my-bookings');
             exit;
         }
@@ -171,13 +171,13 @@ class BookingController
             } else {
                 $booking = $this->bookingService->getBookingById($bookingId, $userId);
                 if ($booking === null) {
-                    $_SESSION['flash_error'] = 'Booking not found or you do not have permission to edit it.';
+                    $_SESSION['error_message'] = 'Booking not found or you do not have permission to edit it.';
                 } else {
-                    $_SESSION['flash_error'] = 'Could not update: that date and time are already booked.';
+                    $_SESSION['error_message'] = 'Could not update: that date and time are already booked.';
                 }
             }
         } catch (\Exception $e) {
-            $_SESSION['flash_error'] = 'An error occurred updating the booking: ' . $e->getMessage();
+            $_SESSION['error_message'] = 'An error occurred updating the booking: ' . $e->getMessage();
         }
 
         header('Location: /my-bookings');
