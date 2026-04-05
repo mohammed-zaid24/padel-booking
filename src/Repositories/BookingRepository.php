@@ -114,6 +114,24 @@ class BookingRepository extends Repository implements IBookingRepository
         return (bool) $stmt->fetch();
     }
 
+    public function isTimeslotForCourtAndDate(int $courtId, string $date, int $timeslotId): bool
+    {
+        $pdo = $this->getConnection();
+
+        $sql = "SELECT 1
+                FROM timeslots
+                WHERE id = :id AND court_id = :court_id AND slot_date = :slot_date
+                LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $timeslotId,
+            'court_id' => $courtId,
+            'slot_date' => $date,
+        ]);
+
+        return (bool) $stmt->fetch();
+    }
+
     public function updateBooking(int $bookingId, int $userId, string $date, int $timeslotId): bool
     {
         $pdo = $this->getConnection();
@@ -124,6 +142,45 @@ class BookingRepository extends Repository implements IBookingRepository
         $stmt->execute([
             'id' => $bookingId,
             'user_id' => $userId,
+            'date' => $date,
+            'timeslot_id' => $timeslotId,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    public function getById(int $bookingId): ?array
+    {
+        $pdo = $this->getConnection();
+
+        $sql = "
+            SELECT b.id AS booking_id, b.user_id, b.court_id, b.date, b.timeslot_id,
+                   c.name AS court_name, t.start_time, t.end_time,
+                   u.name AS user_name, u.email AS user_email
+            FROM bookings b
+            INNER JOIN courts c ON c.id = b.court_id
+            INNER JOIN timeslots t ON t.id = b.timeslot_id
+            INNER JOIN users u ON u.id = b.user_id
+            WHERE b.id = :id
+            LIMIT 1
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $bookingId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+    public function updateBookingById(int $bookingId, string $date, int $timeslotId): bool
+    {
+        $pdo = $this->getConnection();
+
+        $sql = "UPDATE bookings SET date = :date, timeslot_id = :timeslot_id
+                WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id' => $bookingId,
             'date' => $date,
             'timeslot_id' => $timeslotId,
         ]);

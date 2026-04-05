@@ -1,7 +1,7 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
 <div class="container py-4">
-    <a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+    <?php require __DIR__ . '/../partials/back_nav.php'; ?>
     <h1 class="mb-4">Manage Timeslots</h1>
 
     <form method="get" action="/admin/timeslots" class="mb-3">
@@ -16,6 +16,19 @@
                 <?php endforeach; ?>
             </select>
         </div>
+
+        <div class="mb-2">
+            <label class="form-label" for="selected_date">Select day:</label>
+            <input
+                class="form-control"
+                type="date"
+                id="selected_date"
+                name="date"
+                value="<?php echo htmlspecialchars($selectedDate ?? ''); ?>"
+                onchange="this.form.submit()"
+            >
+            <div class="form-text">Pick a day to view and manage timeslots for that date.</div>
+        </div>
     </form>
 
     <?php if (empty($courts)): ?>
@@ -23,6 +36,16 @@
     <?php elseif ($selectedCourtId === 0): ?>
         <div class="alert alert-info">Please choose a court to manage its timeslots.</div>
     <?php else: ?>
+
+        <?php
+        $selectedCourtName = '';
+        foreach ($courts as $c) {
+            if ((int)$c->id === (int)$selectedCourtId) {
+                $selectedCourtName = $c->name;
+                break;
+            }
+        }
+        ?>
 
         <?php if (isset($_SESSION['show_timeslot_added_success'])): ?>
             <?php unset($_SESSION['show_timeslot_added_success']); ?>
@@ -49,12 +72,9 @@
         <form method="post" action="/admin/timeslots/create" class="mb-4" id="addTimeslotForm">
             <?= \App\Framework\Csrf::inputField() ?>
             <input type="hidden" name="court_id" value="<?php echo (int)$selectedCourtId; ?>">
+            <input type="hidden" name="slot_date" id="slot_date" value="<?php echo htmlspecialchars($selectedDate ?? ''); ?>">
 
-            <div class="mb-3">
-                <label class="form-label" for="slot_day">Pick day</label>
-                <input class="form-control" type="date" id="slot_day" required>
-                <div class="form-text">Choose a day first, then select start and end time.</div>
-            </div>
+            <p class="text-muted mb-3">Timeslots will be added for the selected day above.</p>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -89,13 +109,20 @@
             <button type="submit" class="btn btn-primary" id="addTimeslotBtn" disabled>Add Timeslot</button>
         </form>
 
-        <h2 class="h5 mt-4 mb-3">Existing timeslots</h2>
+        <h2 class="h5 mt-4 mb-3">Existing timeslots for selected day</h2>
 
-        <div class="table-responsive">
+        <?php if (($selectedDate ?? '') === ''): ?>
+            <div class="alert alert-info">Choose a day to see existing timeslots.</div>
+        <?php elseif (count($timeslots) === 0): ?>
+            <div class="alert alert-secondary">No timeslots configured for this court on <?php echo htmlspecialchars($selectedDate); ?>.</div>
+        <?php endif; ?>
+
+        <div class="table-responsive mb-4">
             <table class="table table-striped table-bordered align-middle">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>Court</th>
+                        <th>Date</th>
                         <th>Start</th>
                         <th>End</th>
                         <th>Action</th>
@@ -104,14 +131,17 @@
                 <tbody>
                     <?php foreach ($timeslots as $t): ?>
                         <tr>
-                            <td><?php echo (int)$t->id; ?></td>
+                            <td><?php echo htmlspecialchars($selectedCourtName); ?></td>
+                            <td><?php echo htmlspecialchars($selectedDate ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($t->startTime); ?></td>
                             <td><?php echo htmlspecialchars($t->endTime); ?></td>
                             <td>
+                                <a class="btn btn-primary btn-sm" href="/admin/timeslots/edit?id=<?php echo (int)$t->id; ?>">Edit</a>
                                 <form method="post" action="/admin/timeslots/delete" style="display:inline;">
                                     <?= \App\Framework\Csrf::inputField() ?>
                                     <input type="hidden" name="id" value="<?php echo (int)$t->id; ?>">
                                     <input type="hidden" name="court_id" value="<?php echo (int)$selectedCourtId; ?>">
+                                    <input type="hidden" name="date" value="<?php echo htmlspecialchars($selectedDate ?? ''); ?>">
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this timeslot?');">
                                         Delete
                                     </button>
@@ -123,20 +153,54 @@
             </table>
         </div>
 
+        <h2 class="h5 mt-4 mb-3">All existing timeslots for this court</h2>
+
+        <?php if (count($allTimeslots ?? []) === 0): ?>
+            <div class="alert alert-secondary">No timeslots exist yet for this court.</div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach (($allTimeslots ?? []) as $t): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($t->slotDate); ?></td>
+                                <td><?php echo htmlspecialchars($t->startTime); ?></td>
+                                <td><?php echo htmlspecialchars($t->endTime); ?></td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm" href="/admin/timeslots/edit?id=<?php echo (int)$t->id; ?>">Edit</a>
+                                    <a class="btn btn-outline-secondary btn-sm" href="/admin/timeslots?court_id=<?php echo (int)$selectedCourtId; ?>&date=<?php echo urlencode($t->slotDate); ?>">View day</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
         <script>
-        const slotDay = document.getElementById('slot_day');
+        const selectedDateInput = document.getElementById('selected_date');
+        const slotDateHidden = document.getElementById('slot_date');
         const startTime = document.getElementById('start_time');
         const endTime = document.getElementById('end_time');
         const addTimeslotBtn = document.getElementById('addTimeslotBtn');
 
         function toggleTimeslotFields() {
-            const hasDay = !!slotDay.value;
+            const hasDay = !!selectedDateInput.value;
+            slotDateHidden.value = selectedDateInput.value;
             startTime.disabled = !hasDay;
             endTime.disabled = !hasDay;
             addTimeslotBtn.disabled = !hasDay;
         }
 
-        slotDay.addEventListener('change', toggleTimeslotFields);
+        selectedDateInput.addEventListener('change', toggleTimeslotFields);
         toggleTimeslotFields();
         </script>
     <?php endif; ?>

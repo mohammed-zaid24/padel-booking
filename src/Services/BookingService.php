@@ -20,6 +20,10 @@ class BookingService implements IBookingService
 
     public function createBooking(int $userId, int $courtId, string $date, int $timeslotId): void
     {
+    if (!$this->bookingRepository->isTimeslotForCourtAndDate($courtId, $date, $timeslotId)) {
+        throw new \RuntimeException('Selected timeslot is not available for the chosen date.');
+    }
+
     $this->bookingRepository->createBooking($userId, $courtId, $date, $timeslotId);
     }
     
@@ -40,10 +44,36 @@ class BookingService implements IBookingService
             return false;
         }
         $courtId = (int) $booking['court_id'];
+        if (!$this->bookingRepository->isTimeslotForCourtAndDate($courtId, $date, $timeslotId)) {
+            return false;
+        }
         if ($this->bookingRepository->isSlotTaken($courtId, $date, $timeslotId, $bookingId)) {
             return false;
         }
         return $this->bookingRepository->updateBooking($bookingId, $userId, $date, $timeslotId);
+    }
+
+    public function getBookingByIdForAdmin(int $bookingId): ?array
+    {
+        return $this->bookingRepository->getById($bookingId);
+    }
+
+    public function updateBookingForAdmin(int $bookingId, string $date, int $timeslotId): bool
+    {
+        $booking = $this->bookingRepository->getById($bookingId);
+        if ($booking === null) {
+            return false;
+        }
+
+        $courtId = (int) $booking['court_id'];
+        if (!$this->bookingRepository->isTimeslotForCourtAndDate($courtId, $date, $timeslotId)) {
+            return false;
+        }
+        if ($this->bookingRepository->isSlotTaken($courtId, $date, $timeslotId, $bookingId)) {
+            return false;
+        }
+
+        return $this->bookingRepository->updateBookingById($bookingId, $date, $timeslotId);
     }
 
     public function cancelBooking(int $bookingId, int $userId): bool

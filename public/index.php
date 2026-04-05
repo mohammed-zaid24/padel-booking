@@ -117,6 +117,14 @@ if ($path === '/' || $path === '') {
     $controller = new \App\Controllers\AdminController();
     $controller->createTimeslot();
 
+  } elseif ($path === '/admin/timeslots/edit' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller = new \App\Controllers\AdminController();
+    $controller->editTimeslot();
+
+  } elseif ($path === '/admin/timeslots/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new \App\Controllers\AdminController();
+    $controller->updateTimeslot();
+
 } elseif ($path === '/admin/timeslots/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new \App\Controllers\AdminController();
     $controller->deleteTimeslot(); 
@@ -124,6 +132,14 @@ if ($path === '/' || $path === '') {
       } elseif ($path === '/admin/bookings' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $controller = new \App\Controllers\AdminController();
     $controller->bookings();
+
+    } elseif ($path === '/admin/bookings/edit' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+      $controller = new \App\Controllers\AdminController();
+      $controller->editBooking();
+
+    } elseif ($path === '/admin/bookings/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+      $controller = new \App\Controllers\AdminController();
+      $controller->updateBooking();
 
 } elseif ($path === '/admin/bookings/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new \App\Controllers\AdminController();

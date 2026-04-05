@@ -130,7 +130,7 @@ class BookingController
                 exit;
             }
 
-            $timeslots = $this->timeslotService->getByCourtId((int) $booking['court_id']);
+            $timeslots = $this->timeslotService->getByCourtIdAndDate((int)$booking['court_id'], $booking['date']);
             require __DIR__ . '/../Views/bookings/edit.php';
         } catch (\Exception $e) {
             $_SESSION['error_message'] = 'An error occurred loading the booking: ' . $e->getMessage();

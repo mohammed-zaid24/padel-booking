@@ -1,6 +1,6 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
-<a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+<?php require __DIR__ . '/../partials/back_nav.php'; ?>
 
 <div class="container py-4">
     <div class="row justify-content-center">

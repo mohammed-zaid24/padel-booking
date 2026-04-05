@@ -54,6 +54,8 @@ class AuthController
 
         try {
             $this->authService->register($name, $email, $password);
+            $_SESSION['flash_success'] = 'Welcome! Your account was created successfully. You can now log in with your email and password.';
+            $_SESSION['login_prefill_email'] = $email;
             header('Location: /login');
             exit;
         } catch (\Exception $e) {

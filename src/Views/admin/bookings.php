@@ -1,7 +1,7 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
 <div class="container py-4">
-    <a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+    <?php require __DIR__ . '/../partials/back_nav.php'; ?>
     <h1 class="mb-4">All Bookings</h1>
 
     <?php if (count($bookings) === 0): ?>
@@ -33,6 +33,9 @@
                             <td><?php echo htmlspecialchars($b['user_name']); ?></td>
                             <td><?php echo htmlspecialchars($b['user_email']); ?></td>
                             <td>
+                                <a class="btn btn-primary btn-sm" href="/admin/bookings/edit?id=<?php echo (int)$b['booking_id']; ?>">
+                                    Edit
+                                </a>
                                 <form method="post" action="/admin/bookings/delete" style="display:inline;">
                                     <?= \App\Framework\Csrf::inputField() ?>
                                     <input type="hidden" name="booking_id" value="<?php echo (int)$b['booking_id']; ?>">

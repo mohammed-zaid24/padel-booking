@@ -48,7 +48,7 @@ class CourtRepository extends Repository implements ICourtRepository
         $row['location']
     );
   }
-    public function create(string $name, string $location): void
+    public function create(string $name, string $location): int
 {
     $pdo = $this->getConnection();
 
@@ -58,6 +58,8 @@ class CourtRepository extends Repository implements ICourtRepository
         'name' => $name,
         'location' => $location
     ]);
+
+    return (int)$pdo->lastInsertId();
 }
 
     public function update(int $id, string $name, string $location): void

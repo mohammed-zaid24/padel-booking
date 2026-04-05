@@ -1,11 +1,13 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
-<a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+<?php require __DIR__ . '/../partials/back_nav.php'; ?>
 
 <h1>Manage Courts</h1>
 
 <?php if (isset($_SESSION['show_court_added_success'])): ?>
+    <?php $newCourtId = (int)($_SESSION['new_court_id'] ?? 0); ?>
     <?php unset($_SESSION['show_court_added_success']); ?>
+    <?php unset($_SESSION['new_court_id']); ?>
 
     <div class="card mb-4 shadow-sm">
         <div class="card-body text-center py-5">
@@ -17,6 +19,9 @@
             <h2 class="h5 mb-2">Court Added Successfully!</h2>
             <p class="text-muted mb-4">Your new court has been added to the system.</p>
             <div class="d-flex justify-content-center gap-3">
+                <?php if ($newCourtId > 0): ?>
+                    <a href="/admin/timeslots?court_id=<?php echo $newCourtId; ?>" class="btn btn-success">Add Timeslot To This Court</a>
+                <?php endif; ?>
                 <button class="btn btn-primary" onclick="document.getElementById('addCourtForm').scrollIntoView({behavior:'smooth'});">Add Another Court</button>
                 <a href="/admin" class="btn btn-outline-primary">Back to Admin</a>
             </div>

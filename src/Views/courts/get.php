@@ -9,7 +9,7 @@ $breadcrumbs = [
 require __DIR__ . '/../partials/breadcrumb.php';
 ?>
 
-<a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+<?php require __DIR__ . '/../partials/back_nav.php'; ?>
 
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
@@ -41,12 +41,44 @@ require __DIR__ . '/../partials/breadcrumb.php';
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-white">
+            <h2 class="h5 mb-0">All existing timeslots for this court</h2>
+        </div>
+        <div class="card-body">
+            <?php if (empty($allTimeslots)): ?>
+                <div class="alert alert-secondary mb-0">No timeslots configured yet for this court.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Start</th>
+                                <th>End</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($allTimeslots as $t): ?>
+                                <tr class="timeslot-overview-row" data-slot-date="<?php echo htmlspecialchars($t->slotDate); ?>" style="cursor:pointer;" title="Click to load this date and book a slot">
+                                    <td><?php echo htmlspecialchars($t->slotDate); ?></td>
+                                    <td><?php echo htmlspecialchars($t->startTime); ?></td>
+                                    <td><?php echo htmlspecialchars($t->endTime); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
             <h2 class="h5 mb-0">Step 1: Choose date</h2>
         </div>
         <div class="card-body">
             <label for="datePicker" class="form-label">Date</label>
             <input type="date" id="datePicker" class="form-control" style="max-width: 250px;" aria-describedby="dateHelp">
-            <div id="dateHelp" class="form-text">Pick a date to see available times below.</div>
+            <div id="dateHelp" class="form-text">Pick a date to load all slots for that day. You can then click any available slot directly to book it.</div>
         </div>
     </div>
 
@@ -55,6 +87,7 @@ require __DIR__ . '/../partials/breadcrumb.php';
             <h2 class="h5 mb-0">Step 2: Available timeslots</h2>
         </div>
         <div class="card-body">
+            <p class="text-muted small mb-3">Tip: Green slots are available. Click one to book instantly.</p>
             <div id="timeslotsBox">
                 <div class="alert alert-light border mb-0 text-muted">
                     Select a date above to see availability.
@@ -70,6 +103,7 @@ require __DIR__ . '/../partials/breadcrumb.php';
     const csrfToken = document.getElementById('csrf-token').value;
     const datePicker = document.getElementById('datePicker');
     const box = document.getElementById('timeslotsBox');
+    const overviewRows = document.querySelectorAll('.timeslot-overview-row');
 
     const params = new URLSearchParams(window.location.search);
     const existingDate = params.get('date');
@@ -93,6 +127,11 @@ require __DIR__ . '/../partials/breadcrumb.php';
             const res = await fetch(`/api/availability?court_id=${courtId}&date=${encodeURIComponent(date)}`);
             const data = await res.json();
 
+            if (!Array.isArray(data) || data.length === 0) {
+                box.innerHTML = '<div class="alert alert-warning mb-0">No timeslots exist for the selected date.</div>';
+                return;
+            }
+
             let html = '<ul class="list-group list-group-flush">';
 
             for (const t of data) {
@@ -102,15 +141,16 @@ require __DIR__ . '/../partials/breadcrumb.php';
                         <span class="badge bg-secondary">Booked</span>
                      </li>`;
                 } else {
-                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>${t.start_time} - ${t.end_time}</span>
-
+                    html += `<li class="list-group-item p-0">
                         <form method="post" action="/book" class="m-0">
                             <input type="hidden" name="_csrf" value="${csrfToken}">
                             <input type="hidden" name="court_id" value="${courtId}">
                             <input type="hidden" name="timeslot_id" value="${t.id}">
                             <input type="hidden" name="date" value="${date}">
-                            <button type="submit" class="btn btn-sm btn-success">Book</button>
+                            <button type="submit" class="btn btn-outline-success w-100 d-flex justify-content-between align-items-center text-start rounded-0 border-0 py-3 px-3">
+                                <span>${t.start_time} - ${t.end_time}</span>
+                                <span class="badge bg-success">Click to book</span>
+                            </button>
                         </form>
                      </li>`;
                 }
@@ -121,6 +161,19 @@ require __DIR__ . '/../partials/breadcrumb.php';
         } catch (err) {
             box.innerHTML = '<div class="alert alert-danger mb-0">Failed to load availability.</div>';
         }
+    });
+
+    overviewRows.forEach((row) => {
+        row.addEventListener('click', () => {
+            const slotDate = row.getAttribute('data-slot-date');
+            if (!slotDate) {
+                return;
+            }
+
+            datePicker.value = slotDate;
+            datePicker.dispatchEvent(new Event('change'));
+            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
     });
     </script>
 

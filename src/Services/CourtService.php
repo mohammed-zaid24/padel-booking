@@ -23,9 +23,9 @@ class CourtService implements ICourtService
       return $this->courtRepository->getById($id);
    }
     
-    public function create(string $name, string $location): void
+    public function create(string $name, string $location): int
 {
-    $this->courtRepository->create($name, $location);
+    return $this->courtRepository->create($name, $location);
 }
 
     public function update(int $id, string $name, string $location): void

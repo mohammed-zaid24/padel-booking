@@ -1,47 +1,97 @@
-
 # Padel Court Booking System
 
-Custom PHP MVC application for managing padel court reservations.
+This is my Web Development 1 final project. It is a custom PHP MVC app where users can register, log in, check court availability, and book padel courts. Admins can manage courts, timeslots, and bookings.
 
-## Project structure and static files
+## Run with Docker
 
-- Application entry point and routing: `public/index.php`.
-- Static assets (CSS, images) live in `public/`. Apache DocumentRoot is `public/` (see `Dockerfile`). Requests for existing files (e.g. `/css/app.css`) are served directly by `public/.htaccess`; all other requests are forwarded to `index.php`.
+From a clean clone in the project root:
 
-## Features
-- User registration & login
-- Real-time availability (JavaScript + JSON API)
-- Booking & cancellation
-- Admin panel (courts, timeslots, bookings)
-- Secure PDO prepared statements
-- Role-based authorization
-- Bootstrap UI
+1. docker-compose up --build
+2. Open app: http://localhost:8080
+3. Open phpMyAdmin: http://localhost:8081
 
-## Tech Stack
-- PHP (custom MVC)
-- MySQL
-- Docker
-- Bootstrap 5
-- JavaScript fetch API
+Docker files used:
 
-## Accessibility (WCAG)
+- docker-compose.yml
+- Dockerfile
 
-This project aims to align with WCAG 2.1 considerations where applicable:
+## Database and setup notes
 
-- **Page language**: Root `<html lang="en">` is set so assistive technologies use the correct language. See `src/Views/partials/header.php`.
-- **Semantic structure**: Navigation is wrapped in `<nav>`, content in `<header>` / main content areas. Same file.
-- **Form labels**: All form inputs have associated `<label>` elements (e.g. login, register, court date picker). See `src/Views/auth/login.php`, `src/Views/auth/register.php`, and `src/Views/courts/get.php`.
-- **Contrast and focus**: Bootstrap 5 is used for consistent colour contrast and focus styles. Buttons and links are keyboard-focusable. Custom transitions on interactive elements are in `public/css/app.css`.
-- **Dynamic content**: The availability list in `src/Views/courts/get.php` is updated via JavaScript; the date picker has a visible label and the loading/error states are communicated in the same region.
+- Required export file in project root: padel_booking.sql
+- Docker auto-init file used by MySQL container: db/schema.sql (mounted through docker-compose.yml)
+- padel_booking.sql is the root export copy for submission; db/schema.sql is the file Docker runs during container initialization.
+- Main tables: users, courts, timeslots, bookings
 
-## GDPR considerations
+If you already had an old Docker volume before the slot_date update, see troubleshooting below.
 
-- **Data collected**: Name, email, and a hashed password for account creation; booking data (court, date, timeslot) linked to the user. See `src/Repositories/UserRepository.php` and `src/Repositories/BookingRepository.php`.
-- **Purpose**: Account management and court booking only. No analytics or third-party tracking in this codebase.
-- **Sessions**: Login state is stored in server-side sessions with secure cookie settings (httponly, samesite). See `public/index.php` (session configuration) and `src/Services/AuthService.php` (what is stored in session).
-- **Passwords**: Stored only as hashes via `password_hash()`; see `src/Services/AuthService.php`.
+## Demo login credentials
 
-For a production deployment you would additionally document retention periods, legal basis, and user rights (access, rectification, erasure) and implement them where required.
+These demo accounts are seeded in db/schema.sql and padel_booking.sql.
 
-**Code references (WCAG & GDPR):**  
-`src/Views/partials/header.php` · `src/Views/auth/login.php` · `src/Views/auth/register.php` · `src/Views/courts/get.php` · `public/css/app.css` · `src/Repositories/UserRepository.php` · `src/Repositories/BookingRepository.php` · `public/index.php` · `src/Services/AuthService.php`
+- Admin
+	- Email: admin@padel.local
+	- Password: admin123
+- User
+	- Email: user@padel.local
+	- Password: user123
+
+## Architecture and coding patterns
+
+- MVC routing entry point: public/index.php
+- Controllers coordinate request flow: src/Controllers
+- Models represent entities: src/Models
+- Repositories handle SQL data access: src/Repositories
+- Services contain business logic between controllers and repositories: src/Services
+- CSRF utility class for form protection: src/Framework/Csrf.php
+
+Examples:
+
+- Auth flow and password hashing: src/Services/AuthService.php
+- Booking and availability repository queries: src/Repositories/BookingRepository.php
+- Timeslot repository with date-based logic: src/Repositories/TimeslotRepository.php
+
+## GDPR notes
+
+Implemented in this project:
+
+- Minimal personal data usage for account + booking features only
+- Passwords are hashed (not stored in plain text)
+- Session-based login with secure cookie settings
+- Prepared statements for DB operations
+
+Code references:
+
+- src/Services/AuthService.php
+- public/index.php
+- src/Repositories/UserRepository.php
+- src/Repositories/BookingRepository.php
+- src/Repositories/Repository.php
+
+## WCAG / accessibility notes
+
+Implemented in this project:
+
+- Page language is set in layout
+- Semantic navigation/header structure
+- Labels on form fields
+- Bootstrap responsive layout and keyboard-focusable controls
+- Availability section communicates loading/error/empty states clearly
+
+Code references:
+
+- src/Views/partials/header.php
+- src/Views/auth/login.php
+- src/Views/auth/register.php
+- src/Views/courts/get.php
+- public/css/app.css
+
+## Troubleshooting
+
+If you get SQL errors after schema changes (for example unknown column slot_date), your old Docker volume probably still has the old table structure.
+
+Use a full reset:
+
+1. docker compose down -v
+2. docker compose up --build
+
+This recreates the MySQL volume and re-runs db/schema.sql from scratch.

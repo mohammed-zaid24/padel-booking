@@ -1,6 +1,6 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
 
-<a class="btn btn-outline-secondary btn-sm mb-3" href="javascript:history.back()">← Back</a>
+<?php require __DIR__ . '/../partials/back_nav.php'; ?>
 
 <h1 class="mb-2">Admin Dashboard</h1>
 <p class="text-muted mb-4">Manage courts, timeslots and bookings.</p>

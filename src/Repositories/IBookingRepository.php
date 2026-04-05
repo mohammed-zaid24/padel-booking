@@ -11,6 +11,8 @@ interface IBookingRepository
     public function getByIdAndUserId(int $bookingId, int $userId): ?array;
     /** Check if court+date+timeslot is already taken by another booking (exclude one booking id) */
     public function isSlotTaken(int $courtId, string $date, int $timeslotId, ?int $excludeBookingId = null): bool;
+    /** Validate that a timeslot id belongs to a specific court and date. */
+    public function isTimeslotForCourtAndDate(int $courtId, string $date, int $timeslotId): bool;
     public function updateBooking(int $bookingId, int $userId, string $date, int $timeslotId): bool;
     public function deleteByIdAndUserId(int $bookingId, int $userId): bool;
     public function getAll(): array;

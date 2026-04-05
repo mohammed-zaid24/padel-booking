@@ -30,8 +30,8 @@ class ApiController
             return;
         }
 
-        // 3) Load all timeslots for court
-        $timeslots = $this->timeslotService->getByCourtId($courtId);
+        // 3) Load timeslots that exist for this court and selected date
+        $timeslots = $this->timeslotService->getByCourtIdAndDate($courtId, $date);
 
         // 4) Load booked timeslot ids for this court+date
         $bookedIds = $this->bookingService->getBookedTimeslotIds($courtId, $date);

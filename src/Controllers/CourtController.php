@@ -45,7 +45,8 @@ class CourtController
             }
 
             $date = $_GET['date'] ?? null;
-            $timeslots = $this->timeslotService->getByCourtId($id);
+            $timeslots = [];
+            $allTimeslots = $this->timeslotService->getByCourtId($id);
             $bookedTimeslotIds = [];
 
             if ($date) {
